@@ -35,6 +35,53 @@ size_t getByteNum_UTF8(const char byte){
     return byteNum == 0 ? 1 : byteNum;
 }
 
+
+
+bool isChineseCharacter(const std::string &str, size_t pos)
+{
+    if (pos + 2 >= str.size())
+        return false; // 需要至少3个字节
+
+    unsigned char c1 = str[pos];
+    unsigned char c2 = str[pos + 1];
+    unsigned char c3 = str[pos + 2];
+
+    // UTF-8 处理
+    if (c1 < 0x80)
+        return false; // ASCII范围内的字符
+
+    // 汉字的 UTF-8 编码范围 (3字节)
+    if (c1 >= 0xE4 && c1 <= 0xE9)
+    {
+        if ((c2 & 0xC0) == 0x80 && (c3 & 0xC0) == 0x80)
+        {
+            return true; // 这范围包含了常用汉字
+        }
+    }
+    return false;
+}
+
+void SplitTool::cleanCnMaterial(const string & str)
+{
+    size_t pos = 0;
+
+    while (pos < str.size())
+    {
+        if (isChineseCharacter(str, pos))
+        {
+            _raw.push_back(str[pos]);
+            _raw.push_back(str[pos + 1]);
+            _raw.push_back(str[pos + 2]);
+            pos += 3; // 跳过完整的汉字
+        }
+        else
+        {
+            pos++;
+        }
+    }
+    std::cout << "cleanCnMaterial Success!\n";
+}
+
 void SplitTool::createDictCN(const string & filepath){
     //打开目录
     DIR* dir = opendir(filepath.c_str());
@@ -78,8 +125,9 @@ void SplitTool::createDictCN(const string & filepath){
         ifs.read(buff,length+1);
         string txt(buff);
         delete []buff;
+        cleanCnMaterial(txt);
 
-        vector<string> tmp = cut(txt);
+        vector<string> tmp = cut(_raw);
 
         for(auto & ele :tmp){
             if(getByteNum_UTF8(ele[0]==3)){

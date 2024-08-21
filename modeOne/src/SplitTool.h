@@ -24,7 +24,10 @@ public:
     void createDictCN(const string &);
 
     vector<string> cut(const string &);
+
+    void cleanCnMaterial(const string & str);
 public:
+    string _raw;
     vector<string> _paths;
     map<string,int> _dictCN;
 private:

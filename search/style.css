@@ -1,0 +1,37 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    text-align: center;
+    margin-top: 100px;
+}
+
+.logo img {
+    width: 200px; /* 根据需要调整Logo大小 */
+}
+
+.search-bar {
+    margin-top: 20px;
+}
+
+#search-input {
+    width: 400px;
+    height: 40px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+}
+
+#search-button {
+    height: 40px;
+    padding: 0 20px;
+    border: none;
+    background-color: #43949a;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
