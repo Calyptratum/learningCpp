@@ -13,7 +13,7 @@ int main()
     PageLibProcess::getInstance(path)->createOffsetlib("/root/searchEgine/modeOne/src/data/Pagelib.dat");
     PageLibProcess::getInstance(path)->storeOffset("../data/offset.dat");
     PageLibProcess::getInstance(path)->buildInvertIndexMap("../data/Pagelib.dat");
-    //PageLibProcess::getInstance(path)->storeWebIndex("../data/invertIndex.dat");
+    PageLibProcess::getInstance(path)->storeWebIndex("../data/invertIndex.dat");
     PageLibProcess::getInstance(path)->destory();
     return 0;
 }

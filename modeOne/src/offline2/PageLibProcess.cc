@@ -413,65 +413,62 @@ static  double calculate(int totalCount,double totalElementCout){
     return log2(totalElementCout/(totalCount+1)+2);
 }
 
-void PageLibProcess::buildInvertIndexMap(const string & filename){
+void PageLibProcess::buildInvertIndexMap(const string & filename) {
+    cppjieba::Jieba jieba(DICT_PATH, HMM_PATH, USER_DICT_PATH);
     
-    cppjieba::Jieba jieba(DICT_PATH,HMM_PATH,USER_DICT_PATH);
-     
+    // 打开并读取文件内容
     std::ifstream file(filename);
     if (!file.is_open()) {
-        cerr << "无法打开文件: " << filename <<"\n";
+        cerr << "无法打开文件: " << filename << "\n";
         return;
     }
-
-    // 读取文件内容到一个字符串中
     string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
-    
-    vector<string> tmp ;
-    
-    //切割字符，并存入map中
-    jieba.CutForSearch(content,tmp);
-    map<string ,int> temp;
-    for(const auto & ele :tmp){
-        ++temp[ele];
-    }
-    //释放临时vector
-    tmp.clear();
-    tmp.shrink_to_fit();
-/*
-    for(auto & ele :temp){
-        cout<<ele.first<<ele.second<<"\n";
-    }
-*/
-    
-    //遍历
-    for(const auto & ele : temp){
-        for(size_t i= 1;i<temp.size();++i){
-        double weightCoefficient = calculate(ele.second,(double)_offset.size());
-        for(const auto & myelement :_offset){
-            int start = myelement.second.first;
-            int length = myelement.second.second;
-            string regionText = content.substr(start,length);
 
+    // 切割文本
+    vector<string> words;
+    jieba.CutForSearch(content, words);
+
+    // 词频统计
+    map<string, int> termFrequency;
+    for (const auto &word : words) {
+        ++termFrequency[word];
+    }
+
+    // 遍历所有词
+    for (const auto &entry : termFrequency) {
+        const string &term = entry.first;
+        int termCount = entry.second;
+        double weightCoefficient = calculate(termCount, static_cast<double>(_offset.size()));
+
+        // 遍历所有文档
+        for (const auto &docEntry : _offset) {
+            int docID = docEntry.first;
+            int start = docEntry.second.first;
+            int length = docEntry.second.second;
+            string regionText = content.substr(start, length);
+
+            // 计算词在文档中的出现次数
             int wordCountInRegion = 0;
-            string::size_type pos  = 0;
-
-            while ((pos = regionText.find(ele.first, pos)) != std::string::npos) {
+            size_t pos = 0;
+            while ((pos = regionText.find(term, pos)) != string::npos) {
                 ++wordCountInRegion;
-                pos += ele.first.length();
+                pos += term.length();
             }
 
-            if(wordCountInRegion >0 ){
-                double weight = weightCoefficient*wordCountInRegion;
-                _invertIndex[ele.first].insert({myelement.first,weight});
-                }
+            // 更新倒排索引
+            if (wordCountInRegion > 0) {
+                double weight = weightCoefficient * wordCountInRegion;
+                _invertIndex[term].insert({docID, weight});
             }
-        std::cout<<"create"<<i<<"\n";
         }
 
-
-    }   
+        // 输出进度信息（可选）
+       // std::cout << "Processed term: " << term << "\n";
+    }
 }
+
+
 
 void PageLibProcess::storeWebIndex(const string & filename){
     std::ofstream ofs(filename);
