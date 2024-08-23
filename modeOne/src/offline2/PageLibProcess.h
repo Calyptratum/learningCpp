@@ -5,7 +5,7 @@
 
 #include "tinyxml2.h"
 #include "../simhash/include/simhash/Simhasher.hpp"
-
+#include "../simhash/include/simhash/cppjieba/Jieba.hpp"
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unordered_map>
@@ -49,7 +49,7 @@ public:
     void storeRawOnDisk(const string& filename);
     void cutRedundantPage(const string& src, const string& des);  //页面去重，simhash算法  
     void createOffsetlib(const string & filename); //构建页面偏移库
-    void buildInvertIndexMap(); //构建倒排索引库
+    void buildInvertIndexMap(const string & filename); //构建倒排索引库
     void storeOffset(const string& filename);
     void storeWebIndex(const string& filename);
 private:
@@ -68,6 +68,7 @@ private:
     
     vector<uint64_t> _simhasheLib;
     std::map<int, pair<int, int>> _offset;
+    std::unordered_map<string ,std::set<pair<int ,double>>> _invertIndex;
 };
 
 #endif // __PagelibProcess_H__

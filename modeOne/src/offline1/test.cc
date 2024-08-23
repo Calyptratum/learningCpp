@@ -11,7 +11,7 @@ int main()
     for(auto & ele : sp._dictCN){
         cout<<ele.first<<" "<<ele.second<<"\n";
     }
-
+*/
     DictProducer::getInstance();
     DictProducer::getInstance()->indexCreate();
     DictProducer::getInstance()->storeIndex();
@@ -19,14 +19,14 @@ int main()
 
 
     DictProducer::destroy();
-*/
+/*
     std::string input;
     std::cout<<"please enter a string :";
     std::getline(std::cin, input);
-    
+*/  
     SearchPre::getInstance();
-    SearchPre::getInstance()->splitQuery(input);
-    set<candidate> test(SearchPre::getInstance()->generateAndSortCandidate(input));
+    SearchPre::getInstance()->splitQuery("make");
+    set<candidate> test(SearchPre::getInstance()->generateAndSortCandidate("make"));
     if(test.empty()){
         std::cout<<"no candidate found\n";
     }

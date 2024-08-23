@@ -14,6 +14,7 @@ SplitTool::SplitTool(const string & filepath)
 :_jieba(DICT_PATH,HMM_PATH,USER_DICT_PATH,IDF_PATH,STOP_WORD_PATH){
     createDictCN(filepath);
 
+    storeDictCN("./dictCN.txt");
 }
 
 vector<string> SplitTool::cut(const string &sentence)
@@ -141,4 +142,16 @@ void SplitTool::createDictCN(const string & filepath){
         }
     }
     ifs.close();
+}
+
+void SplitTool::storeDictCN(const string & filepath){
+    std::ofstream ofs(filepath);
+    if(!ofs){
+        std::cerr<<"open file to write failed\n";
+        return ;
+    }
+    for(const auto & ele : _dictCN){
+        ofs<<ele.first<<" "<<ele.second<<"\n";
+    }
+    ofs.close();
 }

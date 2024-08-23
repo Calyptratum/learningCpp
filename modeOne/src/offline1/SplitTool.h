@@ -24,7 +24,7 @@ public:
     void createDictCN(const string &);
 
     vector<string> cut(const string &);
-
+    void storeDictCN(const string & filepath);
     void cleanCnMaterial(const string & str);
 public:
     string _raw;

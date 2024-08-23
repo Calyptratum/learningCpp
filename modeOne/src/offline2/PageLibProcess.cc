@@ -1,4 +1,7 @@
 #include "PageLibProcess.h"
+
+#include <math.h>
+
 #include <regex>
 #include <thread>
 #include <chrono>
@@ -223,7 +226,7 @@ const char *const DICT_PATH = "../cppjieba/dict/jieba.dict.utf8";
 const char *const HMM_PATH = "../cppjieba/dict/hmm_model.utf8";
 const char *const IDF_PATH = "../cppjieba/dict/idf.utf8";
 const char *const STOP_WORD_PATH = "../cppjieba/dict/stop_words.utf8";
-
+const char *const USER_DICT_PATH = "../cppjieba/dict/user.dict.utf8";
 void PageLibProcess::cutRedundantPage(const string &src, const string &des)
 {
     int i = 0;
@@ -404,4 +407,83 @@ void PageLibProcess::storeOffset(const string & filename){
 
     outFile.close();
 
+}
+
+static  double calculate(int totalCount,double totalElementCout){
+    return log2(totalElementCout/(totalCount+1)+2);
+}
+
+void PageLibProcess::buildInvertIndexMap(const string & filename){
+    
+    cppjieba::Jieba jieba(DICT_PATH,HMM_PATH,USER_DICT_PATH);
+     
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "无法打开文件: " << filename <<"\n";
+        return;
+    }
+
+    // 读取文件内容到一个字符串中
+    string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+    
+    vector<string> tmp ;
+    
+    //切割字符，并存入map中
+    jieba.CutForSearch(content,tmp);
+    map<string ,int> temp;
+    for(const auto & ele :tmp){
+        ++temp[ele];
+    }
+    //释放临时vector
+    tmp.clear();
+    tmp.shrink_to_fit();
+/*
+    for(auto & ele :temp){
+        cout<<ele.first<<ele.second<<"\n";
+    }
+*/
+    
+    //遍历
+    for(const auto & ele : temp){
+        for(size_t i= 1;i<temp.size();++i){
+        double weightCoefficient = calculate(ele.second,(double)_offset.size());
+        for(const auto & myelement :_offset){
+            int start = myelement.second.first;
+            int length = myelement.second.second;
+            string regionText = content.substr(start,length);
+
+            int wordCountInRegion = 0;
+            string::size_type pos  = 0;
+
+            while ((pos = regionText.find(ele.first, pos)) != std::string::npos) {
+                ++wordCountInRegion;
+                pos += ele.first.length();
+            }
+
+            if(wordCountInRegion >0 ){
+                double weight = weightCoefficient*wordCountInRegion;
+                _invertIndex[ele.first].insert({myelement.first,weight});
+                }
+            }
+        std::cout<<"create"<<i<<"\n";
+        }
+
+
+    }   
+}
+
+void PageLibProcess::storeWebIndex(const string & filename){
+    std::ofstream ofs(filename);
+    if(!ofs){
+        std::cerr<<"open file to write failed\n";
+    }
+
+    for(const auto & element : _invertIndex){
+        for(const auto & value: element.second){
+            ofs<<element.first<<" "<<value.first<<" "<<value.second<<" "<<"\n";
+        }
+    }
+    std::cout<<"create invertIndex sucess !\n";
+    ofs.close();
 }
